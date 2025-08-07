@@ -8,13 +8,15 @@ const openai = new OpenAI({
 
 router.post('/', async (req, res) => {
   try {
+    const { messages } = req.body;
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
-      messages: req.body.messages,
+      messages,
       temperature: 0.7
     });
     res.json(completion);
   } catch (error) {
+    console.error('OpenAI Error:', error);
     res.status(500).json({ error: error.message });
   }
 });

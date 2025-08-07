@@ -3,13 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     messages: document.getElementById('chat-messages'),
     input: document.getElementById('user-input'),
     sendBtn: document.getElementById('send-btn'),
-    apiUrl: '/api/chat',
+    apiUrl: 'https://zeemoai.onrender.com/api/chat',
     
     init() {
       this.sendBtn.addEventListener('click', () => this.sendMessage());
-      this.input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') this.sendMessage();
-      });
+      this.input.addEventListener('keypress', (e) => e.key === 'Enter' && this.sendMessage());
+      this.addMessage("Hello! I'm Zeemo. How can I help?", 'bot');
     },
 
     async sendMessage() {
@@ -25,10 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: [{ role: 'user', content: text }] })
         });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         this.addMessage(data.choices[0].message.content, 'bot');
       } catch (error) {
-        this.addMessage("Connection error", 'bot');
+        console.error('API Error:', error);
+        this.addMessage("Connection failed. Check console.", 'bot');
       }
     },
 
