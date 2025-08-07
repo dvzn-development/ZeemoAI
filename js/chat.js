@@ -1,52 +1,30 @@
-const chatMessages = document.getElementById('chat-messages');
-const userInput = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-const newChatBtn = document.getElementById('new-chat');
+import { Configuration, OpenAIApi } from 'openai';
+import cors from 'cors';
 
-sendBtn.addEventListener('click', sendMessage);
-userInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendMessage();
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY
 });
 
-newChatBtn.addEventListener('click', () => {
-  chatMessages.innerHTML = `
-    <div class="message bot-message">
-      <div class="avatar">Z</div>
-      <div class="content">
-        <div class="name">Zeemo</div>
-        <div class="text">Hello! What would you like to discuss?</div>
-      </div>
-    </div>
-  `;
-});
+const openai = new OpenAIApi(configuration);
 
-async function sendMessage() {
-  const message = userInput.value.trim();
-  if (!message) return;
+export default async function handler(req, res) {
+  await cors()(req, res, () => {});
 
-  addMessage(message, 'user');
-  userInput.value = '';
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
-  const response = await fetch('/api/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: [{ role: 'user', content: message }] })
-  });
-
-  const data = await response.json();
-  addMessage(data.choices[0].message.content, 'bot');
-}
-
-function addMessage(text, sender) {
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${sender}-message`;
-  messageDiv.innerHTML = `
-    ${sender === 'bot' ? '<div class="avatar">Z</div>' : ''}
-    <div class="content">
-      ${sender === 'bot' ? '<div class="name">Zeemo</div>' : ''}
-      <div class="text">${text}</div>
-    </div>
-  `;
-  chatMessages.appendChild(messageDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  try {
+    const { messages } = req.body;
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages,
+      temperature: 0.7
+    });
+    
+    return res.status(200).json(completion.data);
+  } catch (error) {
+    console.error('OpenAI API error:', error);
+    return res.status(500).json({ error: error.message });
+  }
 }
