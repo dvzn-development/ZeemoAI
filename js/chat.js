@@ -1,30 +1,42 @@
-import { Configuration, OpenAIApi } from 'openai';
-import cors from 'cors';
+const chatMessages = document.getElementById('chat-messages');
+const userInput = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
 
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
+sendBtn.addEventListener('click', sendMessage);
+userInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') sendMessage();
 });
 
-const openai = new OpenAIApi(configuration);
+async function sendMessage() {
+  const message = userInput.value.trim();
+  if (!message) return;
 
-export default async function handler(req, res) {
-  await cors()(req, res, () => {});
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  addMessage(message, 'user');
+  userInput.value = '';
 
   try {
-    const { messages } = req.body;
-    const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages,
-      temperature: 0.7
+    const response = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: message }] })
     });
-    
-    return res.status(200).json(completion.data);
+    const data = await response.json();
+    addMessage(data.choices[0].message.content, 'bot');
   } catch (error) {
-    console.error('OpenAI API error:', error);
-    return res.status(500).json({ error: error.message });
+    addMessage("Sorry, I can't connect right now.", 'bot');
   }
+}
+
+function addMessage(text, sender) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `message ${sender}-message`;
+  messageDiv.innerHTML = `
+    ${sender === 'bot' ? '<div class="avatar">Z</div>' : ''}
+    <div class="content">
+      ${sender === 'bot' ? '<div class="name">Zeemo</div>' : ''}
+      <div class="text">${text}</div>
+    </div>
+  `;
+  chatMessages.appendChild(messageDiv);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
 }
