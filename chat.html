@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat - ZeemoAI - Dvzn Development</title>
+  <link rel="stylesheet" href="css/chat.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="chat-app">
+    <div class="sidebar">
+      <button class="new-chat-btn" id="new-chat">+ New Chat</button>
+    </div>
+    
+    <div class="chat-container">
+      <div class="chat-header">
+        <h2>Zeemo AI</h2>
+      </div>
+      
+      <div class="chat-messages" id="chat-messages">
+        <div class="message bot-message">
+          <div class="avatar">Z</div>
+          <div class="content">
+            <div class="name">Zeemo</div>
+            <div class="text">Hello! I'm Zeemo, your AI assistant. How can I help you today?</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="input-area">
+        <input type="text" id="user-input" placeholder="Message Zeemo...">
+        <button id="send-btn">➤</button>
+      </div>
+      <div class="footer">made with ❤ by the <a href="https://dvzn.lol" target="_blank">dvzn development team</a></div>
+    </div>
+  </div>
+  
+  <script src="js/chat.js"></script>
+</body>
+</html>
