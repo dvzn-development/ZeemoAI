@@ -1,104 +1,53 @@
-const chatMessages = document.getElementById('chat-messages');
-const userInput = document.getElementById('user-input');
-const sendBtn = document.getElementById('send-btn');
-const newChatBtn = document.getElementById('new-chat');
+document.addEventListener('DOMContentLoaded', () => {
+  const chat = {
+    messages: document.getElementById('chat-messages'),
+    input: document.getElementById('user-input'),
+    sendBtn: document.getElementById('send-btn'),
+    apiUrl: '/api/chat',
+    
+    init() {
+      this.sendBtn.addEventListener('click', () => this.sendMessage());
+      this.input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') this.sendMessage();
+      });
+    },
 
-const API_URL = 'https://chat.dvzn.lol/api/chat';
+    async sendMessage() {
+      const text = this.input.value.trim();
+      if (!text) return;
+      
+      this.addMessage(text, 'user');
+      this.input.value = '';
+      
+      try {
+        const response = await fetch(this.apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages: [{ role: 'user', content: text }] })
+        });
+        const data = await response.json();
+        this.addMessage(data.choices[0].message.content, 'bot');
+      } catch (error) {
+        this.addMessage("Connection error", 'bot');
+      }
+    },
 
-sendBtn.addEventListener('click', sendMessage);
-userInput.addEventListener('keypress', (e) => {
-  if (e.key === 'Enter') sendMessage();
-});
-
-newChatBtn.addEventListener('click', startNewChat);
-
-async function sendMessage() {
-  const message = userInput.value.trim();
-  if (!message) return;
-
-  addMessage(message, 'user');
-  userInput.value = '';
-
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        messages: [{ 
-          role: 'user', 
-          content: message 
-        }] 
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    addMessage(text, sender) {
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${sender}-message`;
+      msgDiv.innerHTML = sender === 'bot' 
+        ? `<div class="avatar">Z</div>
+           <div class="content">
+             <div class="name">Zeemo</div>
+             <div class="text">${text}</div>
+           </div>`
+        : `<div class="content">
+             <div class="text">${text}</div>
+           </div>`;
+      this.messages.appendChild(msgDiv);
+      this.messages.scrollTop = this.messages.scrollHeight;
     }
-
-    const data = await response.json();
-    addMessage(data.choices[0].message.content, 'bot');
-  } catch (error) {
-    console.error('API Error:', error);
-    addMessage("Sorry, I'm having trouble connecting to the AI service. Please try again later.", 'bot');
-  }
-}
-
-function addMessage(text, sender) {
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${sender}-message`;
+  };
   
-  if (sender === 'bot') {
-    messageDiv.innerHTML = `
-      <div class="avatar">Z</div>
-      <div class="message-content">
-        <div class="bot-name">Zeemo</div>
-        <div class="text">${text}</div>
-      </div>
-    `;
-  } else {
-    messageDiv.innerHTML = `
-      <div class="message-content">
-        <div class="text">${text}</div>
-      </div>
-    `;
-  }
-
-  chatMessages.appendChild(messageDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function startNewChat() {
-  chatMessages.innerHTML = `
-    <div class="message bot-message">
-      <div class="avatar">Z</div>
-      <div class="message-content">
-        <div class="bot-name">Zeemo</div>
-        <div class="text">Hello! I'm Zeemo, your AI assistant. What would you like to discuss?</div>
-      </div>
-    </div>
-  `;
-}
-
-function showTypingIndicator() {
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'message bot-message';
-  typingDiv.id = 'typing-indicator';
-  typingDiv.innerHTML = `
-    <div class="avatar">Z</div>
-    <div class="message-content">
-      <div class="bot-name">Zeemo</div>
-      <div class="typing-indicator">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-      </div>
-    </div>
-  `;
-  chatMessages.appendChild(typingDiv);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function hideTypingIndicator() {
-  const typingIndicator = document.getElementById('typing-indicator');
-  if (typingIndicator) typingIndicator.remove();
-}
+  chat.init();
+});

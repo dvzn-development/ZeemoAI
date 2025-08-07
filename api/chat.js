@@ -1,24 +1,20 @@
-const { Configuration, OpenAIApi } = require('openai');
+const { OpenAI } = require('openai');
 const express = require('express');
 const router = express.Router();
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-const openai = new OpenAIApi(configuration);
-
 router.post('/', async (req, res) => {
   try {
-    const { messages } = req.body;
-    const completion = await openai.createChatCompletion({
+    const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
-      messages,
+      messages: req.body.messages,
       temperature: 0.7
     });
-    res.json(completion.data);
+    res.json(completion);
   } catch (error) {
-    console.error('OpenAI error:', error);
     res.status(500).json({ error: error.message });
   }
 });
